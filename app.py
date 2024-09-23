@@ -10,13 +10,15 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
-
+# Check if the API key is loaded correctly
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("API key not found in environment variables. Please check 'key.env'.")
 
+# Configure the API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
 def get_pdf_text(pdf_docs):
@@ -40,11 +42,11 @@ def get_vector_store(text_chunks):
 def get_conversational_chain():
     prompt_template = """
     নির্দেশাবলী:
-    আপনি একটি AI সিস্টেম যা ব্যবহারকারীর অনুভূতি বুঝতে এবং পবিত্র কুরআন থেকে উদ্ধৃতি প্রদান করতে ডিজাইন করা হয়েছে। ব্যবহারকারী তাদের অনুভূতি বাংলায় ইনপুট করবে, যেমন বিষণ্ণতা বা উদ্বেগ। আপনার কাজ হল ব্যবহারকারীর মানসিক অবস্থা বোঝা এবং তাদের অনুপ্রাণিত ও সান্ত্বনা দেওয়ার জন্য পবিত্র কুরআনের প্রাসঙ্গিক আয়াত উল্লেখ করা।
+    আপনি একটি AI সিস্টেম যা ব্যবহারকারীর অনুভূতি বুঝতে এবং পবিত্র কুরআন ও হাদিস থেকে উদ্ধৃতি প্রদান করতে ডিজাইন করা হয়েছে। ব্যবহারকারী তাদের অনুভূতি বাংলায় ইনপুট করবে, যেমন বিষণ্ণতা বা উদ্বেগ। আপনার কাজ হল ব্যবহারকারীর মানসিক অবস্থা বোঝা এবং তাদের অনুপ্রাণিত ও সান্ত্বনা দেওয়ার জন্য পবিত্র কুরআনের প্রাসঙ্গিক আয়াত উল্লেখ করা।
     অনুগ্রহ করে:
     - বাংলায় ব্যবহারকারীর ইনপুটটি মনোযোগ সহকারে বিশ্লেষণ করুন।
-    - ব্যবহারকারীর মানসিক অবস্থার সাথে সরাসরি সম্পর্কিত পবিত্র কুরআনের উদ্ধৃতি প্রদান করুন।
-    - নিশ্চিত করুন যে আপনার কুরআনের উদ্ধৃতিগুলি সঠিক এবং প্রাসঙ্গিক।
+    - ব্যবহারকারীর মানসিক অবস্থার সাথে সরাসরি সম্পর্কিত পবিত্র কুরআন ও হাদিসের উদ্ধৃতি প্রদান করুন।
+    - নিশ্চিত করুন যে আপনার কুরআনের এবং হাদিসের উদ্ধৃতিগুলি সঠিক এবং প্রাসঙ্গিক।
     - যদি তথ্য অনুপস্থিত বা অস্পষ্ট হয়, তবে প্রসঙ্গের উপর ভিত্তি করে যৌক্তিক অনুমান করুন যাতে সর্বোত্তম অনুপ্রেরণা প্রদান করা যায়।
     - সংক্ষিপ্ত কিন্তু বিস্তারিত হন, প্রয়োজন হলে ব্যবহারকারীকে সান্ত্বনা দেওয়ার জন্য বিস্তারিত পদক্ষেপ প্রদান করুন।
     প্রসঙ্গ:\n{context}\n
@@ -59,37 +61,33 @@ def get_conversational_chain():
     return chain
 
 def user_input(user_question):
-    with st.spinner('প্রসেসিং...'):
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
-        
-        new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-        docs = new_db.similarity_search(user_question)
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
+    
+    new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+    docs = new_db.similarity_search(user_question)
 
-        chain = get_conversational_chain()
+    chain = get_conversational_chain()
 
-        response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+    response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
 
-        st.write("Reply: ", response["output_text"])
+    print(response)
+    st.write("Reply: ", response["output_text"])
 
 def main():
     st.set_page_config("Get Motivation From the Holy AL-QURAN", page_icon="📚", layout="wide")
     st.header("📖 Get Motivation From the Holy AL-QURAN")
+    
+    Motiv = st.text_input("কি কারণে আপনার মন খারাপ? অথবা কি জানতে চান?")
 
-
-    Law = st.text_input("What Happened?")
-
-    if Law:
-        user_question = f"{Law}. And Please give me guideline, Motivation and instructions what will be best in this context from the Holy Quran, Give Precise instruction"
+    if Motiv:
+        user_question = f"{Motiv}. And Please give me guideline, Motivation and instructions what will be best in this context from the Holy Quran and Hadith. Give Precise instruction."
         user_input(user_question)
-
-    with st.sidebar:
-        st.title("Documents:")
-
-        # Process the provided PDFs
-        pdf_files = ["fab.pdf"]
-        raw_text = get_pdf_text([open(pdf, "rb") for pdf in pdf_files])
-        text_chunks = get_text_chunks(raw_text)
-        get_vector_store(text_chunks)
+        
+    pdf_files = ["fab.pdf", "Bukhari_Hadis_Part-1.pdf", "Bukhari_Hadis_Part-2.pdf", "Bukhari_Hadis_Part-3.pdf", "Bukhari_Hadis_Part-4.pdf", "Bukhari_Hadis_Part-5.pdf", "Bukhari_Hadis_Part-6.pdf", "Bukhari_Hadis_Part-7.pdf", "Bukhari_Hadis_Part-8.pdf", "Bukhari_Hadis_Part-9.pdf", "Bukhari_Hadis_Part-10.pdf"]
+    raw_text = get_pdf_text([open(pdf, "rb") for pdf in pdf_files])
+    text_chunks = get_text_chunks(raw_text)
+    get_vector_store(text_chunks)
 
 if __name__ == "__main__":
     main()
+    
