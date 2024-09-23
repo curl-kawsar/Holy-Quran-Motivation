@@ -61,17 +61,18 @@ def get_conversational_chain():
     return chain
 
 def user_input(user_question):
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
-    
-    new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-    docs = new_db.similarity_search(user_question)
+def user_input(user_question):
+    with st.spinner('প্রসেসিং...'):
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
+        
+        new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+        docs = new_db.similarity_search(user_question)
 
-    chain = get_conversational_chain()
+        chain = get_conversational_chain()
 
-    response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+        response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
 
-    print(response)
-    st.write("Reply: ", response["output_text"])
+        st.write("Reply: ", response["output_text"])
 
 def main():
     st.set_page_config("Get Motivation From the Holy AL-QURAN", page_icon="📚", layout="wide")
