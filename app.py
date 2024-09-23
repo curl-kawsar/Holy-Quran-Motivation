@@ -10,15 +10,13 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Check if the API key is loaded correctly
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("API key not found in environment variables. Please check 'key.env'.")
 
-# Configure the API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
 def get_pdf_text(pdf_docs):
@@ -77,7 +75,7 @@ def main():
     st.set_page_config("Get Motivation From the Holy AL-QURAN", page_icon="📚", layout="wide")
     st.header("📖 Get Motivation From the Holy AL-QURAN")
 
-    # Input field for user's concern
+
     Law = st.text_input("What Happened?")
 
     if Law:
@@ -88,7 +86,6 @@ def main():
         st.title("Documents:")
 
         # Process the provided PDFs
-        # pdf_files = ["Digital-Security-Act-2018.pdf", "Information and Communication Technology Act, 2006.pdf"]
         pdf_files = ["fab.pdf"]
         raw_text = get_pdf_text([open(pdf, "rb") for pdf in pdf_files])
         text_chunks = get_text_chunks(raw_text)
