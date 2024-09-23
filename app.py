@@ -61,7 +61,6 @@ def get_conversational_chain():
     return chain
 
 def user_input(user_question):
-def user_input(user_question):
     with st.spinner('প্রসেসিং...'):
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
         
